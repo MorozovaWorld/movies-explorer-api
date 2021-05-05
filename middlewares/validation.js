@@ -1,6 +1,7 @@
 // users validation
 const { celebrate, Joi } = require('celebrate');
 
+// users validation
 const createUserValidator = celebrate({
   body: Joi.object().keys({
     email: Joi
@@ -9,8 +10,12 @@ const createUserValidator = celebrate({
       .email(),
     password: Joi
       .string()
+      .required(),
+    name: Joi
+      .string()
       .required()
-      .min(4),
+      .min(2)
+      .max(30),
   }),
 });
 
@@ -22,40 +27,21 @@ const loginValidator = celebrate({
       .email(),
     password: Joi
       .string()
-      .required()
-      .min(4),
-  }),
-});
-
-const getProfileByIdValidator = celebrate({
-  params: Joi.object().keys({
-    id: Joi
-      .string()
-      .length(24),
+      .required(),
   }),
 });
 
 const updateProfileValidator = celebrate({
   body: Joi.object().keys({
+    email: Joi
+      .string()
+      .required()
+      .email(),
     name: Joi
       .string()
       .required()
       .min(2)
       .max(30),
-    about: Joi
-      .string()
-      .required()
-      .min(2)
-      .max(30),
-  }),
-});
-
-const updateProfileAvatarValidator = celebrate({
-  body: Joi.object().keys({
-    avatar: Joi
-      .string()
-      .required()
-      .pattern(/^(http|https):\/\/(www\.)?[A-Za-z0-9-]+\.([A-Za-z0-9-]\/)*[A-Za-z](\/([\w#!:[\].?+()$'~*,;=&%@!\-/])*)?#?/),
   }),
 });
 
@@ -112,9 +98,7 @@ const deleteMovieValidator = celebrate({
 module.exports = {
   createUserValidator,
   loginValidator,
-  getProfileByIdValidator,
   updateProfileValidator,
-  updateProfileAvatarValidator,
   createMovieValidator,
   deleteMovieValidator,
 };

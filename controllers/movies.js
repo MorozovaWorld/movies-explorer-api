@@ -1,30 +1,28 @@
 const Movie = require('../models/movie');
-const Err400BadRequest = require('../errors/Err400BadRequest');
-const Err403Forbidden = require('../errors/Err403Forbidden');
-const Err404NotFound = require('../errors/Err404NotFound');
-const Err500 = require('../errors/Err500');
+const {
+  badIdError,
+  notFoundError,
+  forbiddenError,
+  otherError,
+  validationError,
+} = require('../utils/constants.js');
 
 const handleIdErrors = (err, res, next) => {
   if (err.name === 'CastError') {
-    const badIdError = new Err400BadRequest('Невалидный id');
     next(badIdError);
   } else if (err.message === 'NotFound') {
-    const notFoundError = new Err404NotFound('Фильм не найден');
     next(notFoundError);
   } else if (err.message === 'Forbidden') {
-    const forbiddenError = new Err403Forbidden('Нет прав доступа к удалению фильма');
     next(forbiddenError);
   } else {
-    const OtherError = new Err500('Внутренняя ошибка сервера');
-    next(OtherError);
+    next(otherError);
   }
 };
 
 const getMovies = (req, res, next) => Movie.find({})
   .then((movies) => res.status(200).send(movies))
   .catch(() => {
-    const OtherError = new Err500('Запрашиваемый ресурс не найден');
-    next(OtherError);
+    next(otherError);
   });
 
 const createMovie = (req, res, next) => {
@@ -32,11 +30,9 @@ const createMovie = (req, res, next) => {
     .then((movie) => res.status(200).send(movie))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        const ValidationError = new Err400BadRequest(`Произошла ошибка валидации: ${err}`);
-        next(ValidationError);
+        next(validationError);
       } else {
-        const OtherError = new Err500('Внутренняя ошибка сервера');
-        next(OtherError);
+        next(otherError);
       }
     });
 };
