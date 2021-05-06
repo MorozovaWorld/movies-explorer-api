@@ -24,8 +24,8 @@ mongoose.connect('mongodb://localhost:27017/bitfilmsdb', {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
-})
-  .then(() => console.log('connected to DB'));
+  useUnifiedTopology: true,
+});
 
 app.use('*', cors(options));
 app.use(helmet());
@@ -49,6 +49,4 @@ app.use(errorLogger);
 app.use(errors());
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}`);
-});
+app.listen(PORT);
