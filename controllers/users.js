@@ -3,50 +3,43 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+
+const Err400BadRequest = require('../errors/Err400BadRequest');
+const Err401Unauthorized = require('../errors/Err401Unauthorized');
+const Err404NotFound = require('../errors/Err404NotFound');
+const Err409Conflict = require('../errors/Err409Conflict');
+
 const {
-  badIdError,
-  notFoundError,
-  unauthorizedError,
-  conflictError,
-  otherError,
-  validationError,
-  Err400BadRequest,
+  MONGO_DUPLICATE_ERROR_CODE,
+  SALT_ROUNDS,
+  ERROR_VALIDATION,
+  ERROR_ID_UNVALID,
+  ERROR_USER_ID_NOT_FOUND,
+  ERROR_ACСESS_UNAUTHORIZED,
+  ERROR_EMAIL_CONFLICT,
+  ERROR_EMAIL_OR_PASSWORD_ABSENTS,
 } = require('../utils/constants.js');
-
-const MONGO_DUPLICATE_ERROR_CODE = 11000;
-const SALT_ROUNDS = 10;
-
-const handleGetUserErrors = (err, res, next) => {
-  if (err.message === 'Not Found') {
-    next(notFoundError);
-  }
-  if (err.name === 'CastError') {
-    next(badIdError);
-  } else {
-    next(otherError);
-  }
-};
 
 const handleUpdateErrors = (err, res, next) => {
   if (err.name === 'ValidationError') {
+    const validationError = new Err400BadRequest(`${ERROR_VALIDATION} ${err}`);
     next(validationError);
   }
   if (err.code === MONGO_DUPLICATE_ERROR_CODE) {
+    const conflictError = new Err409Conflict(ERROR_EMAIL_CONFLICT);
     next(conflictError);
   }
   if (err.name === 'CastError') {
+    const badIdError = new Err400BadRequest(ERROR_ID_UNVALID);
     next(badIdError);
-  }
-  if (err.message === 'Not Found') {
-    next(notFoundError);
   } else {
-    next(otherError);
+    next(err);
   }
 };
 
 const emailAndPasswordValidation = (email, password) => {
   if (!email || !password) {
-    throw new Err400BadRequest('Не передан емейл или пароль');
+    throw new Err400BadRequest(ERROR_EMAIL_OR_PASSWORD_ABSENTS);
   }
 };
 
@@ -72,9 +65,10 @@ const createUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.code === MONGO_DUPLICATE_ERROR_CODE) {
+        const conflictError = new Err409Conflict(ERROR_EMAIL_CONFLICT);
         next(conflictError);
       } else {
-        next(otherError);
+        next(err);
       }
     });
 };
@@ -94,6 +88,7 @@ const login = (req, res, next) => {
       res.status(200).send({ token });
     })
     .catch(() => {
+      const unauthorizedError = new Err401Unauthorized(ERROR_ACСESS_UNAUTHORIZED);
       next(unauthorizedError);
     });
 };
@@ -101,13 +96,21 @@ const login = (req, res, next) => {
 const getMe = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(() => {
-      throw new Error('Not Found');
+      const notFoundError = new Err404NotFound(ERROR_USER_ID_NOT_FOUND);
+      throw notFoundError;
     })
     .then((user) => res.status(200).send({
       email: user.email,
       name: user.name,
     }))
-    .catch((err) => handleGetUserErrors(err, res, next));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        const badIdError = new Err400BadRequest(ERROR_ID_UNVALID);
+        next(badIdError);
+      } else {
+        next(err);
+      }
+    });
 };
 
 const updateProfile = (req, res, next) => {
@@ -118,7 +121,8 @@ const updateProfile = (req, res, next) => {
     runValidators: true,
   })
     .orFail(() => {
-      throw new Error('Not Found');
+      const notFoundError = new Err404NotFound(ERROR_USER_ID_NOT_FOUND);
+      throw notFoundError;
     })
     .then((user) => res.status(200).send({
       email: user.email,

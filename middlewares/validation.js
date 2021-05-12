@@ -1,5 +1,14 @@
 // users validation
 const { celebrate, Joi } = require('celebrate');
+const validator = require('validator');
+const { ERROR_LINK_NEEDED } = require('../utils/constants.js');
+
+const urlValidation = (value, helpers) => {
+  if (validator.isURL(value)) {
+    return value;
+  }
+  return helpers.message(`${helpers.state.path}: ${ERROR_LINK_NEEDED}`);
+};
 
 // users validation
 const createUserValidator = celebrate({
@@ -66,15 +75,15 @@ const createMovieValidator = celebrate({
     image: Joi
       .string()
       .required()
-      .pattern(/^(http|https):\/\/(www\.)?[A-Za-z0-9-]+\.([A-Za-z0-9-]\/)*[A-Za-z](\/([\w#!:[\].?+()$'~*,;=&%@!\-/])*)?#?/),
+      .custom(urlValidation),
     trailer: Joi
       .string()
       .required()
-      .pattern(/^(http|https):\/\/(www\.)?[A-Za-z0-9-]+\.([A-Za-z0-9-]\/)*[A-Za-z](\/([\w#!:[\].?+()$'~*,;=&%@!\-/])*)?#?/),
+      .custom(urlValidation),
     thumbnail: Joi
       .string()
       .required()
-      .pattern(/^(http|https):\/\/(www\.)?[A-Za-z0-9-]+\.([A-Za-z0-9-]\/)*[A-Za-z](\/([\w#!:[\].?+()$'~*,;=&%@!\-/])*)?#?/),
+      .custom(urlValidation),
     movieId: Joi
       .string()
       .required(),

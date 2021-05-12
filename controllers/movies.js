@@ -1,28 +1,19 @@
 const Movie = require('../models/movie');
-const {
-  badIdError,
-  notFoundError,
-  forbiddenError,
-  otherError,
-  validationError,
-} = require('../utils/constants.js');
+const Err400BadRequest = require('../errors/Err400BadRequest');
+const Err403Forbidden = require('../errors/Err403Forbidden');
+const Err404NotFound = require('../errors/Err404NotFound');
 
-const handleIdErrors = (err, res, next) => {
-  if (err.name === 'CastError') {
-    next(badIdError);
-  } else if (err.message === 'NotFound') {
-    next(notFoundError);
-  } else if (err.message === 'Forbidden') {
-    next(forbiddenError);
-  } else {
-    next(otherError);
-  }
-};
+const {
+  ERROR_VALIDATION,
+  ERROR_MOVIE_ID_NOT_FOUND,
+  ERROR_MOVIE_DELETE_UNAUTHORIZED,
+  ERROR_ID_UNVALID,
+} = require('../utils/constants.js');
 
 const getMovies = (req, res, next) => Movie.find({})
   .then((movies) => res.status(200).send(movies))
-  .catch(() => {
-    next(otherError);
+  .catch((err) => {
+    next(err);
   });
 
 const createMovie = (req, res, next) => {
@@ -30,9 +21,10 @@ const createMovie = (req, res, next) => {
     .then((movie) => res.status(200).send(movie))
     .catch((err) => {
       if (err.name === 'ValidationError') {
+        const validationError = new Err400BadRequest(`${ERROR_VALIDATION} ${err}`);
         next(validationError);
       } else {
-        next(otherError);
+        next(err);
       }
     });
 };
@@ -40,17 +32,26 @@ const createMovie = (req, res, next) => {
 const deleteMovie = (req, res, next) => {
   Movie.findById(req.params.movieId)
     .orFail(() => {
-      throw new Error('NotFound');
+      const notFoundError = new Err404NotFound(ERROR_MOVIE_ID_NOT_FOUND);
+      throw notFoundError;
     })
     .then((movie) => {
       if (movie.owner.toString() !== req.user._id.toString()) {
-        throw new Error('Forbidden');
+        const forbiddenError = new Err403Forbidden(ERROR_MOVIE_DELETE_UNAUTHORIZED);
+        throw forbiddenError;
       } else {
-        movie.remove();
-        return res.status(200).send(movie);
+        return movie.remove()
+          .then(res.status(200).send(movie));
       }
     })
-    .catch((err) => handleIdErrors(err, res, next));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        const badIdError = new Err400BadRequest(ERROR_ID_UNVALID);
+        next(badIdError);
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports = {

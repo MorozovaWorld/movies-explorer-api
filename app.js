@@ -5,22 +5,18 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cors = require('cors');
 
-const usersControllers = require('./controllers/users.js');
-const usersRouter = require('./routes/users.js');
-const movieRouter = require('./routes/movies.js');
-const auth = require('./middlewares/auth');
+const allRouter = require('./routes/index.js');
 const errorHandler = require('./middlewares/errorHandler.js');
-const { createUserValidator, loginValidator } = require('./middlewares/validation.js');
 const { requestLogger, errorLogger } = require('./middlewares/logger.js');
 const { options } = require('./middlewares/cors.js');
 const { rateLimiter } = require('./middlewares/rateLimiter.js');
-const Err404NotFound = require('./errors/Err404NotFound');
 
 const app = express();
 
-const { PORT = 3001 } = process.env;
+const { PORT = 3001, NODE_ENV, MONGO_URL } = process.env;
+const mongoUrl = NODE_ENV === 'production' ? MONGO_URL : 'mongodb://localhost:27017/bitfilmsdb';
 
-mongoose.connect('mongodb://localhost:27017/bitfilmsdb', {
+mongoose.connect(mongoUrl, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
@@ -33,17 +29,7 @@ app.use(express.json());
 app.use(requestLogger);
 app.use(rateLimiter);
 
-app.post('/signup', createUserValidator, usersControllers.createUser);
-app.post('/signin', loginValidator, usersControllers.login);
-
-app.use(auth);
-
-app.use('/', usersRouter);
-app.use('/', movieRouter);
-
-app.use(() => {
-  throw new Err404NotFound('Запрашиваемый ресурс не найден');
-});
+app.use('/', allRouter);
 
 app.use(errorLogger);
 app.use(errors());

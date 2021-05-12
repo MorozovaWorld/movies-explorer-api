@@ -1,25 +1,28 @@
-const Err400BadRequest = require('../errors/Err400BadRequest');
-const Err401Unauthorized = require('../errors/Err401Unauthorized');
-const Err403Forbidden = require('../errors/Err403Forbidden');
-const Err404NotFound = require('../errors/Err404NotFound');
-const Err409Conflict = require('../errors/Err409Conflict');
-const Err500 = require('../errors/Err500');
+const ERROR_VALIDATION = 'Произошла ошибка валидации:';
+const ERROR_EMAIL_OR_PASSWORD_ABSENTS = 'Не передан емейл или пароль';
+const ERROR_MOVIE_ID_NOT_FOUND = 'Карточка с фильмом не найдена';
+const ERROR_USER_ID_NOT_FOUND = 'Пользователь не найден';
+const ERROR_MOVIE_DELETE_UNAUTHORIZED = 'Нет прав доступа к удалению карточки фильма';
+const ERROR_ID_UNVALID = 'Невалидный id';
+const ERROR_ACСESS_UNAUTHORIZED = 'Неправильная почта или пароль';
+const ERROR_EMAIL_CONFLICT = 'Пользователь с таким емейлом уже зарегистрирован';
+const ERROR_AUTHORIZATION_NEEDED = 'Необходима авторизация';
+const ERROR_LINK_NEEDED = 'Поле заполнено некорректно, необходима ссылка';
 
-const badIdError = new Err400BadRequest('Невалидный id');
-const unauthorizedError = new Err401Unauthorized('Неправильная почта или пароль');
-const forbiddenError = new Err403Forbidden('Нет прав доступа');
-const notFoundError = new Err404NotFound('Не найдено');
-const conflictError = new Err409Conflict('Пользователь с таким емейлом уже зарегистрирован');
-const otherError = new Err500('Внутренняя ошибка сервера');
-const validationError = new Err400BadRequest('Произошла ошибка валидации');
+const MONGO_DUPLICATE_ERROR_CODE = 11000;
+const SALT_ROUNDS = 10;
 
 module.exports = {
-  badIdError,
-  notFoundError,
-  forbiddenError,
-  otherError,
-  validationError,
-  conflictError,
-  unauthorizedError,
-  Err400BadRequest,
+  MONGO_DUPLICATE_ERROR_CODE,
+  SALT_ROUNDS,
+  ERROR_VALIDATION,
+  ERROR_MOVIE_ID_NOT_FOUND,
+  ERROR_MOVIE_DELETE_UNAUTHORIZED,
+  ERROR_ID_UNVALID,
+  ERROR_USER_ID_NOT_FOUND,
+  ERROR_ACСESS_UNAUTHORIZED,
+  ERROR_EMAIL_CONFLICT,
+  ERROR_EMAIL_OR_PASSWORD_ABSENTS,
+  ERROR_AUTHORIZATION_NEEDED,
+  ERROR_LINK_NEEDED,
 };
