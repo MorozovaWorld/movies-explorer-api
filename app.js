@@ -16,12 +16,20 @@ const app = express();
 const { PORT = 3001, NODE_ENV, MONGO_URL } = process.env;
 const mongoUrl = NODE_ENV === 'production' ? MONGO_URL : 'mongodb://localhost:27017/bitfilmsdb';
 
-mongoose.connect(mongoUrl, {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
-  useUnifiedTopology: true,
-});
+async function connect() {
+  try {
+    await mongoose.connect(mongoUrl, {
+      useNewUrlParser: true,
+      useCreateIndex: true,
+      useFindAndModify: false,
+      useUnifiedTopology: true,
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log(error);
+  }
+}
+connect();
 
 app.use('*', cors(options));
 app.use(helmet());
