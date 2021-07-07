@@ -14,15 +14,14 @@ const { rateLimiter } = require('./middlewares/rateLimiter.js');
 const app = express();
 
 const { PORT = 3001, NODE_ENV, MONGO_URL } = process.env;
-const mongoUrl = NODE_ENV === 'production' ? MONGO_URL : 'mongodb://localhost:27017/bitfilmsdb';
+const mongoUrl = NODE_ENV === 'production' ? MONGO_URL : 'mongodb://localhost:27017/bitfilmsdbnew';
 
 mongoose.connect(mongoUrl, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
   useUnifiedTopology: true,
-// eslint-disable-next-line no-console
-}).catch((err) => console.log(err));
+});
 
 app.use('*', cors(options));
 app.use(helmet());
